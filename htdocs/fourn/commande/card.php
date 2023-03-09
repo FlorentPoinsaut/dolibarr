@@ -159,7 +159,8 @@ $permissiondellink	= $usercancreate; // Used by the include of actions_dellink.i
 $permissiontoedit	= $usercancreate; // Used by the include of actions_lineupdown.inc.php
 $permissiontoadd	= $usercancreate; // Used by the include of actions_addupdatedelete.inc.php
 
-// Project permission
+// Edition permissions
+$caneditfield = ($object->statut == CommandeFournisseur::STATUS_DRAFT);
 $caneditproject = false;
 if (!empty($conf->project->enabled)) {
 	$caneditproject = empty($conf->global->SUPPLIER_ORDER_FORBID_EDIT_PROJECT) || ($object->statut == CommandeFournisseur::STATUS_DRAFT && preg_match('/^[\(]?PROV/i', $object->ref));
@@ -2147,13 +2148,8 @@ if ($action == 'create') {
 	// Default terms of the settlement
 	$langs->load('bills');
 	print '<tr><td class="nowrap">';
-	print '<table class="nobordernopadding centpercent"><tr><td class="nowrap">';
-	print $langs->trans('PaymentConditions');
-	print '<td>';
-	if ($action != 'editconditions') {
-		print '<td class="right"><a class="editfielda" href="'.$_SERVER["PHP_SELF"].'?action=editconditions&token='.newToken().'&id='.$object->id.'">'.img_edit($langs->trans('SetConditions'), 1).'</a></td>';
-	}
-	print '</tr></table>';
+	$editenable = $usercancreate && $caneditfield;
+	print $form->editfieldkey("PaymentConditions", 'conditions', '', $object, $editenable);
 	print '</td><td>';
 	if ($action == 'editconditions') {
 		$form->form_conditions_reglement($_SERVER['PHP_SELF'].'?id='.$object->id, $object->cond_reglement_id, 'cond_reglement_id');
@@ -2166,13 +2162,8 @@ if ($action == 'create') {
 	// Mode of payment
 	$langs->load('bills');
 	print '<tr><td class="nowrap">';
-	print '<table class="nobordernopadding centpercent"><tr><td class="nowrap">';
-	print $langs->trans('PaymentMode');
-	print '</td>';
-	if ($action != 'editmode') {
-		print '<td class="right"><a class="editfielda" href="'.$_SERVER["PHP_SELF"].'?action=editmode&token='.newToken().'&id='.$object->id.'">'.img_edit($langs->trans('SetMode'), 1).'</a></td>';
-	}
-	print '</tr></table>';
+	$editenable = $usercancreate && $caneditfield;
+	print $form->editfieldkey("PaymentMode", 'mode', '', $object, $editenable);
 	print '</td><td>';
 	if ($action == 'editmode') {
 		$form->form_modes_reglement($_SERVER['PHP_SELF'].'?id='.$object->id, $object->mode_reglement_id, 'mode_reglement_id', 'DBIT', 1, 1);
@@ -2234,13 +2225,8 @@ if ($action == 'create') {
 	// Bank Account
 	if (!empty($conf->global->BANK_ASK_PAYMENT_BANK_DURING_SUPPLIER_ORDER) && !empty($conf->banque->enabled)) {
 		print '<tr><td class="nowrap">';
-		print '<table class="nobordernopadding centpercent"><tr><td class="nowrap">';
-		print $langs->trans('BankAccount');
-		print '<td>';
-		if ($action != 'editbankaccount' && $usercancreate) {
-			print '<td class="right"><a class="editfielda" href="'.$_SERVER["PHP_SELF"].'?action=editbankaccount&token='.newToken().'&id='.$object->id.'">'.img_edit($langs->trans('SetBankAccount'), 1).'</a></td>';
-		}
-		print '</tr></table>';
+		$editenable = $usercancreate && $caneditfield;
+		print $form->editfieldkey("BankAccount", 'bankaccount', '', $object, $editenable);
 		print '</td><td>';
 		if ($action == 'editbankaccount') {
 			$form->formSelectAccount($_SERVER['PHP_SELF'].'?id='.$object->id, $object->fk_account, 'fk_account', 1);
@@ -2259,13 +2245,8 @@ if ($action == 'create') {
 
 	// Delivery date planed
 	print '<tr><td>';
-	print '<table class="nobordernopadding centpercent"><tr><td>';
-	print $langs->trans('DateDeliveryPlanned');
-	print '</td>';
-	if ($action != 'editdate_livraison') {
-		print '<td class="right"><a class="editfielda" href="'.$_SERVER["PHP_SELF"].'?action=editdate_livraison&token='.newToken().'&id='.$object->id.'">'.img_edit($langs->trans('SetDeliveryDate'), 1).'</a></td>';
-	}
-	print '</tr></table>';
+	$editenable = $usercancreate && $caneditfield;
+	print $form->editfieldkey("DateDeliveryPlanned", 'date_livraison', '', $object, $editenable);
 	print '</td><td>';
 	if ($action == 'editdate_livraison') {
 		print '<form name="setdate_livraison" action="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'" method="post">';
