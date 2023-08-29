@@ -405,33 +405,35 @@ class doc_generic_supplier_order_odt extends ModelePDFSuppliersOrders
 				try {
 					$foundtagforlines = 1;
 					try {
-						$listlines = $odfHandler->setSegment('lines');
+						$listlines = $odfHandler->setSegments('lines');
 					} catch (OdfException $e) {
 						// We may arrive here if tags for lines not present into template
 						$foundtagforlines = 0;
 						dol_syslog($e->getMessage(), LOG_INFO);
 					}
 					if ($foundtagforlines) {
-						$linenumber = 0;
-						foreach ($object->lines as $line) {
-							$linenumber++;
-							$tmparray = $this->get_substitutionarray_lines($line, $outputlangs, $linenumber);
-							complete_substitutions_array($tmparray, $outputlangs, $object, $line, "completesubstitutionarray_lines");
-							// Call the ODTSubstitutionLine hook
-							$parameters = array('odfHandler'=>&$odfHandler, 'file'=>$file, 'object'=>$object, 'outputlangs'=>$outputlangs, 'substitutionarray'=>&$tmparray, 'line'=>$line);
-							$reshook = $hookmanager->executeHooks('ODTSubstitutionLine', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
-							foreach ($tmparray as $key => $val) {
-								try {
-									$listlines->setVars($key, $val, true, 'UTF-8');
-								} catch (OdfException $e) {
-									dol_syslog($e->getMessage(), LOG_INFO);
-								} catch (SegmentException $e) {
-									dol_syslog($e->getMessage(), LOG_INFO);
+						foreach ($listlines as $lines) {
+							$linenumber = 0;
+							foreach ($object->lines as $line) {
+								$linenumber++;
+								$tmparray = $this->get_substitutionarray_lines($line, $outputlangs, $linenumber);
+								complete_substitutions_array($tmparray, $outputlangs, $object, $line, "completesubstitutionarray_lines");
+								// Call the ODTSubstitutionLine hook
+								$parameters = array('odfHandler'=>&$odfHandler, 'file'=>$file, 'object'=>$object, 'outputlangs'=>$outputlangs, 'substitutionarray'=>&$tmparray, 'line'=>$line);
+								$reshook = $hookmanager->executeHooks('ODTSubstitutionLine', $parameters, $this, $action); // Note that $action and $object may have been modified by some hooks
+								foreach ($tmparray as $key => $val) {
+									try {
+										$lines->setVars($key, $val, true, 'UTF-8');
+									} catch (OdfException $e) {
+										dol_syslog($e->getMessage(), LOG_INFO);
+									} catch (SegmentException $e) {
+										dol_syslog($e->getMessage(), LOG_INFO);
+									}
 								}
+								$lines->merge();
 							}
-							$listlines->merge();
+							$odfHandler->mergeSegments($lines);
 						}
-						$odfHandler->mergeSegment($listlines);
 					}
 				} catch (OdfException $e) {
 					$this->error = $e->getMessage();

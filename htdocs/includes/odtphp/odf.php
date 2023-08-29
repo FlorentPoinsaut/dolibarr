@@ -600,6 +600,25 @@ IMG;
 	}
 
 	/**
+	 * Add the merged segments to the document
+	 *
+	 * @param Segment $segment     Segment
+	 * @throws OdfException
+	 * @return odf
+	 */
+	public function mergeSegments(Segment $segment)
+	{
+		$name = $segment->getName();
+		if (! array_key_exists($name, $this->segments)) {
+			throw new OdfException($name . 'cannot be parsed, has it been set yet ?');
+		}
+		// $reg = '@<text:p[^>]*>\[!--\sBEGIN\s' . $string . '\s--\](.*)\[!--.+END\s' . $string . '\s--\]<\/text:p>@smU';
+		$reg = $this->getSegementReg($name);
+		$this->contentXml = preg_replace($reg, $segment->getXmlParsed(), $this->contentXml, 1);
+		return $this;
+	}
+
+	/**
 	 * Display all the current template variables
 	 *
 	 * @return string
@@ -630,6 +649,10 @@ IMG;
 		return '<pre>' . print_r(implode(' ', array_keys($this->segments)), true) . '</pre>';
 	}
 
+	public function getSegementReg(string $name) : string {
+		return "#\[!--\sBEGIN\s$name\s--\](.*)\[!--\sEND\s$name\s--\]#smU";
+	}
+
 	/**
 	 * Declare a segment in order to use it in a loop.
 	 * Extract the segment and store it into $this->segments[]. Return it for next call.
@@ -652,6 +675,32 @@ IMG;
 		$this->segments[$segment] = new Segment($segment, $m[1], $this);
 		return $this->segments[$segment];
 	}
+
+	/**
+	 * Declare a segment in order to use it in a loop.
+	 * Extract the segment and store it into $this->segments[]. Return it for next call.
+	 *
+	 * @param  string      $segment        Segment
+	 * @throws OdfException
+	 * @return Segment[]
+	 */
+	public function setSegments($segment)
+	{
+		if (array_key_exists($segment, $this->segments)) {
+			return $this->segments[$segment];
+		}
+		// $reg = "#\[!--\sBEGIN\s$segment\s--\]<\/text:p>(.*)<text:p\s.*>\[!--\sEND\s$segment\s--\]#sm";
+		$reg = $this->getSegementReg($segment);
+		$m = array();
+		if (preg_match_all($reg, html_entity_decode($this->contentXml), $m) == 0) {
+			throw new OdfException("'".$segment."' segment not found in the document. The tag [!-- BEGIN xxx --] or [!-- END xxx --] is not present into content file.");
+		}
+		foreach ($m[1] as $value) {
+			$this->segments[$segment][] = new Segment($segment, $value, $this);
+		}
+		return $this->segments[$segment];
+	}
+
 	/**
 	 * Save the odt file on the disk
 	 *
