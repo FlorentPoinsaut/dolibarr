@@ -466,9 +466,9 @@ class Notify
 							$urlwithroot,
 							$outputlangs,
 							$obj->adid,
-							$obj->cid,
 							$obj->type,
-							$obj->email
+							$obj->email,
+							$obj->cid
 						);
 						if ($mailfile_error !== '') {
 							$error++;
@@ -542,7 +542,6 @@ class Notify
 						$urlwithroot,
 						$langs,
 						$notifcodedefid,
-						null,
 						'email',
 						$conf->global->$param
 					);
