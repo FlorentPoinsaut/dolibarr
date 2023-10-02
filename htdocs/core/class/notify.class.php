@@ -468,6 +468,9 @@ class Notify
 							$obj->adid,
 							$obj->type,
 							$obj->email,
+							$filename_list,
+							$mimetype_list,
+							$mimefilename_list,
 							$obj->cid
 						);
 						if ($mailfile_error !== '') {
@@ -543,7 +546,10 @@ class Notify
 						$langs,
 						$notifcodedefid,
 						'email',
-						$conf->global->$param
+						$conf->global->$param,
+						$filename_list,
+						$mimetype_list,
+						$mimefilename_list
 					);
 					if ($mailfile_error !== '') {
 						$error++;
