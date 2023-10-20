@@ -113,14 +113,16 @@ function notify_sendMail(
 			$mesg = $outputLangs->transnoentitiesnoconv('EMailTextIntervention' . $bodyKeys[$notifCode], $link);
 			break;
 		case 'ORDER_SUPPLIER_APPROVE':
+		case 'ORDER_SUPPLIER_APPROVE2':
 		case 'ORDER_SUPPLIER_REFUSE':
 		case 'ORDER_SUPPLIER_SUBMIT':
 		case 'ORDER_SUPPLIER_VALIDATE':
 			$bodyKeys = [
-				'ORDER_SUPPLIER_APPROVE'  => 'EMailTextOrderApproved',
-				'ORDER_SUPPLIER_REFUSE'   => 'EMailTextOrderRefused',
-				'ORDER_SUPPLIER_SUBMIT'   => 'EMailTextSupplierOrderSubmit',
-				'ORDER_SUPPLIER_VALIDATE' => 'EMailTextOrderValidated',
+				'ORDER_SUPPLIER_APPROVE'	=> 'EMailTextOrderApproved',
+				'ORDER_SUPPLIER_APPROVE2'	=> 'EMailTextOrderApproved',
+				'ORDER_SUPPLIER_REFUSE'		=> 'EMailTextOrderRefused',
+				'ORDER_SUPPLIER_SUBMIT'		=> 'EMailTextSupplierOrderSubmit',
+				'ORDER_SUPPLIER_VALIDATE'	=> 'EMailTextOrderValidated',
 			];
 			$link = '<a href="'.$urlWithRoot.'/fourn/commande/card.php?id='.$object->id.'&entity='.$object->entity.'">'.$newRef.'</a>';
 			$dir_output = $conf->fournisseur->commande->multidir_output[$object->entity]."/".get_exdir(0, 0, 0, 1, $object);
