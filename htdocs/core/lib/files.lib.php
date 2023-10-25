@@ -3227,3 +3227,51 @@ function getFilesUpdated(&$file_list, SimpleXMLElement $dir, $path = '', $pathre
 
 	return $file_list;
 }
+
+/**
+ * Get the path of the output dir of on object
+ *
+ * @param CommonObject	$object			An object
+ * @param bool			$withoutSlash	Without slash at end of the path
+ *
+ * @return string The path of the output dir
+ */
+function getOutputDir(CommonObject $object, bool $withoutSlash = false): string
+{
+	global $conf;
+
+	$element = $object->element;
+	switch ($element) {
+		case 'action':
+			$confElement = $conf->agenda;
+			break;
+		case 'chargesociales':
+			$confElement = $conf->tax;
+			break;
+		case 'invoice_supplier':
+			$confElement = $conf->fournisseur->facture;
+			break;
+		case 'order_supplier':
+			$confElement = $conf->fournisseur->commande;
+			break;
+		case 'project_task':
+			$confElement = $conf->project;
+			break;
+		case 'shipping':
+			$confElement = $conf->expedition;
+			break;
+		default:
+			$confElement = $conf->$element;
+			break;
+	};
+
+	$outputDir = isset($confElement->multidir_output) && key_exists($object->entity, $confElement->multidir_output)
+		? $confElement->multidir_output[$object->entity]
+		: $confElement->dir_output;
+
+	if ($element === 'shipping') {
+		$outputDir = $outputDir.'/sending/';
+	}
+
+	return $outputDir."/".get_exdir(0, 0, 0, $withoutSlash, $object);
+}

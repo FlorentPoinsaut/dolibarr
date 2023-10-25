@@ -22,6 +22,7 @@
  *	\ingroup	core
  */
 require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 
 /**
  * Send the notification email
@@ -72,6 +73,8 @@ function notify_sendMail(
 
 	$result = '';
 
+	$outputDir = getOutputDir($object, true);
+
 	switch ($notifCode) {
 		case 'BILL_VALIDATE':
 		case 'BILL_PAYED':
@@ -80,13 +83,11 @@ function notify_sendMail(
 				'BILL_PAYED'    => 'Payed',
 			];
 			$link = '<a href="'.$urlWithRoot.'/compta/facture/card.php?facid='.$object->id.'&entity='.$object->entity.'">'.$newRef.'</a>';
-			$dir_output = $conf->facture->dir_output."/".get_exdir(0, 0, 0, 1, $object, 'invoice');
 			$objectType = 'facture';
 			$mesg = $outputLangs->transnoentitiesnoconv('EMailTextInvoice' . $bodyKeys[$notifCode], $link);
 			break;
 		case 'ORDER_VALIDATE':
 			$link = '<a href="'.$urlWithRoot.'/commande/card.php?id='.$object->id.'&entity='.$object->entity.'">'.$newRef.'</a>';
-			$dir_output = $conf->commande->dir_output."/".get_exdir(0, 0, 0, 1, $object, 'commande');
 			$objectType = 'order';
 			$mesg = $outputLangs->transnoentitiesnoconv("EMailTextOrderValidated", $link);
 			break;
@@ -97,7 +98,6 @@ function notify_sendMail(
 				'PROPAL_CLOSE_SIGNED' => 'ClosedSigned',
 			];
 			$link = '<a href="'.$urlWithRoot.'/comm/propal/card.php?id='.$object->id.'&entity='.$object->entity.'">'.$newRef.'</a>';
-			$dir_output = $conf->propal->multidir_output[$object->entity]."/".get_exdir(0, 0, 0, 1, $object, 'propal');
 			$objectType = 'propal';
 			$mesg = $outputLangs->transnoentitiesnoconv('EMailTextProposal' . $bodyKeys[$notifCode], $link);
 			break;
@@ -108,7 +108,6 @@ function notify_sendMail(
 				'FICHINTER_VALIDATE'    => 'Validated',
 			];
 			$link = '<a href="'.$urlWithRoot.'/fichinter/card.php?id='.$object->id.'&entity='.$object->entity.'">'.$newRef.'</a>';
-			$dir_output = $conf->ficheinter->dir_output;
 			$objectType = 'ficheinter';
 			$mesg = $outputLangs->transnoentitiesnoconv('EMailTextIntervention' . $bodyKeys[$notifCode], $link);
 			break;
@@ -125,7 +124,6 @@ function notify_sendMail(
 				'ORDER_SUPPLIER_VALIDATE'	=> 'EMailTextOrderValidated',
 			];
 			$link = '<a href="'.$urlWithRoot.'/fourn/commande/card.php?id='.$object->id.'&entity='.$object->entity.'">'.$newRef.'</a>';
-			$dir_output = $conf->fournisseur->commande->multidir_output[$object->entity]."/".get_exdir(0, 0, 0, 1, $object);
 			$objectType = 'order_supplier';
 			$mesg = $outputLangs->transnoentitiesnoconv("Hello").",\n\n";
 			$mesg .= $outputLangs->transnoentitiesnoconv($bodyKeys[$notifCode] . 'By', $link, $user->getFullName($outputLangs));
@@ -133,7 +131,6 @@ function notify_sendMail(
 			break;
 		case 'SHIPPING_VALIDATE':
 			$link = '<a href="'.$urlWithRoot.'/expedition/card.php?id='.$object->id.'&entity='.$object->entity.'">'.$newRef.'</a>';
-			$dir_output = $conf->expedition->dir_output."/sending/".get_exdir(0, 0, 0, 1, $object, 'shipment');
 			$objectType = 'shipping';
 			$mesg = $outputLangs->transnoentitiesnoconv('EMailTextExpeditionValidated', $link);
 			break;
@@ -144,7 +141,6 @@ function notify_sendMail(
 				'EXPENSE_REPORT_APPROVE'  => 'Approved',
 			];
 			$link = '<a href="'.$urlWithRoot.'/expensereport/card.php?id='.$object->id.'&entity='.$object->entity.'">'.$newRef.'</a>';
-			$dir_output = $conf->expensereport->dir_output;
 			$objectType = 'expensereport';
 			$mesg = $outputLangs->transnoentitiesnoconv('EMailTextExpenseReport' . $bodyKeys[$notifCode], $link);
 			break;
@@ -155,20 +151,17 @@ function notify_sendMail(
 				'HOLIDAY_APPROVE'  => 'Approved',
 			];
 			$link = '<a href="'.$urlWithRoot.'/holiday/card.php?id='.$object->id.'&entity='.$object->entity.'">'.$newRef.'</a>';
-			$dir_output = $conf->holiday->dir_output;
 			$objectType = 'holiday';
 			$mesg = $outputLangs->transnoentitiesnoconv('EMailTextHoliday' . $bodyKeys[$notifCode], $link);
 			break;
 		case 'ACTION_CREATE':
 			$link = '<a href="'.$urlWithRoot.'/comm/action/card.php?id='.$object->id.'&entity='.$object->entity.'">'.$newRef.'</a>';
-			$dir_output = $conf->agenda->dir_output;
 			$objectType = 'action';
 			$mesg = $outputLangs->transnoentitiesnoconv("EMailTextActionAdded", $link);
 			break;
 		default:
 			$objectType = $object->element;
-			$dir_output = $conf->$objectType->multidir_output[$object->entity ? $object->entity : $conf->entity]."/".get_exdir(0, 0, 0, 1, $object, $objectType);
-			$mesg = $outputLangs->transnoentitiesnoconv('Notify_'.$notifCode).' '.$newRef.' '.$dir_output;
+			$mesg = $outputLangs->transnoentitiesnoconv('Notify_'.$notifCode).' '.$newRef.' '.$outputDir;
 			break;
 	}
 	$template = $notifCode.'_TEMPLATE';
@@ -182,7 +175,7 @@ function notify_sendMail(
 		$defaultMessage = $formmail->getEMailTemplate($db, $objectType.'_send', $user, $outputLangs, 0, 1, $labelToUse);
 	}
 
-	if (!empty($object->fk_project) && !is_object($object->project)) {
+	if (!is_object($object->project)) {
 		$object->fetch_project();
 	}
 
@@ -201,15 +194,11 @@ function notify_sendMail(
 	}
 
 	$ref = dol_sanitizeFileName($newRef);
-	$pdfPath = $dir_output."/".$ref.".pdf";
-	if (!dol_is_file($pdfPath)||(is_object($defaultMessage) && $defaultMessage->id > 0 && !$defaultMessage->joinfiles)) {
-		// We can't add PDF as it is not generated yet.
-		$pdfFile = '';
-	} else {
-		$pdfFile = $pdfPath;
+	if (is_object($defaultMessage) && $defaultMessage->id > 0 && !empty($defaultMessage->joinfiles)) {
+		$pdfFile = (dol_most_recent_file($outputDir, preg_quote($ref, '/').'[^\-]+'))['fullname'];
 		$filename_list[] = $pdfFile;
 		$mimetype_list[] = mime_content_type($pdfFile);
-		$mimefilename_list[] = $ref.".pdf";
+		$mimefilename_list[] = basename($pdfFile);
 	}
 
 	$parameters = [
