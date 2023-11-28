@@ -113,12 +113,14 @@ function notify_sendMail(
 			break;
 		case 'ORDER_SUPPLIER_APPROVE':
 		case 'ORDER_SUPPLIER_APPROVE2':
+		case 'ORDER_SUPPLIER_CANCEL':
 		case 'ORDER_SUPPLIER_REFUSE':
 		case 'ORDER_SUPPLIER_SUBMIT':
 		case 'ORDER_SUPPLIER_VALIDATE':
 			$bodyKeys = [
 				'ORDER_SUPPLIER_APPROVE'	=> 'EMailTextOrderApproved',
 				'ORDER_SUPPLIER_APPROVE2'	=> 'EMailTextOrderApproved',
+				'ORDER_SUPPLIER_CANCEL'		=> 'EMailTextSupplierOrderCanceled',
 				'ORDER_SUPPLIER_REFUSE'		=> 'EMailTextOrderRefused',
 				'ORDER_SUPPLIER_SUBMIT'		=> 'EMailTextSupplierOrderSubmit',
 				'ORDER_SUPPLIER_VALIDATE'	=> 'EMailTextOrderValidated',
